@@ -5,6 +5,7 @@
 import { Markup } from 'telegraf';
 import { getLatestTxs, getStakeRewards } from '../services/blockfrost.js';
 import { qPoll } from '../queue/index.js';
+import { delAll, listSubs } from '../db.js';
 
 export function registerCommands(bot) {
   bot.start((ctx) => {
@@ -46,10 +47,23 @@ export function registerCommands(bot) {
       await ctx.reply('Failed to fetch rewards. Please try again later.');
     }
   });
+
+  bot.hears(/\/watchaddr (addr1[0-9a-zA-Z]+)/, async (ctx) => {
+    const address = ctx.match[1];
+    await qPoll.add('pollAddress', { chatId: ctx.chat.id, address, bot: ctx.telegram }, { repeat: { every: 15000 } });
+    ctx.reply(`Address ${address} scheduled for polling every 15s.`);
+  });
+  
+  bot.command('delete', async (ctx) => {
+    const rows = listSubs.all(String(ctx.chat.id));
+    delAll.run(String(ctx.chat.id));
+    ctx.reply(`Your data has been deleted. Removed ${rows.length} subscription(s).`);
+  });
+
+  bot.command('mywatch', async (ctx) => {
+    const rows = listSubs.all(String(ctx.chat.id));
+    if (!rows.length) return ctx.reply('No subscriptions found.');
+    ctx.reply('Your subscriptions:\\n' + rows.map(r => `- ${r.kind}: ${r.value}`).join('\\n'));
+  });
 }
 
-bot.hears(/\/watchaddr (addr1[0-9a-zA-Z]+)/, async (ctx) => {
-  const address = ctx.match[1];
-  await qPoll.add('pollAddress', { chatId: ctx.chat.id, address, bot: ctx.telegram }, { repeat: { every: 15000 } });
-  ctx.reply(`Address ${address} scheduled for polling every 15s.`);
-});
