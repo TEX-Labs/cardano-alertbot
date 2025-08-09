@@ -4,6 +4,7 @@
  */
 import axios from 'axios';
 import { config } from '../config.js';
+import { providerLimiter } from './limiter.js';
 
 const base = config.network === 'mainnet'
   ? 'https://cardano-mainnet.blockfrost.io/api/v0'
@@ -32,3 +33,7 @@ export async function getStakeRewards(stakeKey) {
   const { data } = await client.get(`/accounts/${stakeKey}/rewards?order=desc&count=1`);
   return data;
 }
+
+const get = (path) => providerLimiter.schedule(() => client.get(path).then(r => r.data));
+export async function getLatestTxs(address) { return get(`/addresses/${address}/transactions?order=desc&count=5`); }
+export async function getStakeRewards(stakeKey) { return get(`/accounts/${stakeKey}/rewards?order=desc&count=1`); }
