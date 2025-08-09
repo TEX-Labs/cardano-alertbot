@@ -4,6 +4,7 @@
  */
 import { Markup } from 'telegraf';
 import { getLatestTxs, getStakeRewards } from '../services/blockfrost.js';
+import { qPoll } from '../queue/index.js';
 
 export function registerCommands(bot) {
   bot.start((ctx) => {
@@ -46,3 +47,9 @@ export function registerCommands(bot) {
     }
   });
 }
+
+bot.hears(/\/watchaddr (addr1[0-9a-zA-Z]+)/, async (ctx) => {
+  const address = ctx.match[1];
+  await qPoll.add('pollAddress', { chatId: ctx.chat.id, address, bot: ctx.telegram }, { repeat: { every: 15000 } });
+  ctx.reply(`Address ${address} scheduled for polling every 15s.`);
+});

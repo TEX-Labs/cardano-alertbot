@@ -22,7 +22,9 @@
   "license": "MIT",
   "dependencies": {
     "axios": "^1.7.2",
+    "bullmq": "^5.56.9",
     "dotenv": "^16.4.5",
+    "ioredis": "^5.7.0",
     "pino": "^9.0.0",
     "telegraf": "^4.16.3"
   },
