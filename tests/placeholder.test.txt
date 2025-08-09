@@ -1,3 +1,0 @@
-// Tests coming soon.
-// Suggestion: add integration tests using a mocked Telegram context
-// and HTTP mocks for Blockfrost API responses.
